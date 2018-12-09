@@ -78,7 +78,7 @@ LOOP_DIV:
 	JZ FIM
 
 DIVISORES:
-	LDA resto_div		; Carrega o resto da subtrai o divisor em potencial 
+	LDA resto_div		; Carrega o resto das subtrações anteriores e subtrai o divisor em potencial 
 	SUB cont
 	STA resto_div
 	JZ ELEVA_D_X		; Caso o resultado das subtrações for zero, então o contador é um divisor de n.
