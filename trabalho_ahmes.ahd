@@ -1,0 +1,173 @@
+; TRABALHO 2 - FUNDAMENTOS DE ARQUITETURA DE COMPUTADORES
+; UNIVERSIDADE FEDERAL DO RIO GRANDE DO SUL
+;
+; Autor: Wellington Espindula (wmespindula@inf.ufrgs.br)
+; #: 00302367
+;
+; Resumo: O presente trabalho tem por objetivo implementar,
+; na máquina teórica Ahmes, uma calculadora de soma dos divisores
+; positivos de um número (n) elevados à uma potência (x).
+;
+; Obs.: Funciona para números acima de 128.
+;	Limite de funcionamento para x = 2 é n = 170.
+;
+
+ORG 128
+; registradores de entrada
+n:		DB 120	; n de entrada
+x:		DB 2	; x de entrada
+
+; registradores de saída
+msb:		DB 0	; byte mais significativo de saída	
+lsb:		DB 0	; byte menos significativo de saída
+
+; registradores utilizados para encontrar divisores
+cont:		DB 0	; contador principal, vai de n ao 0 buscando divisores de n
+d:		DB 0	; divisor de n
+resto_div:	DB 0	; resto das divisoes
+
+; registradores de resultados parciais de potências
+result_pot_A:	DB 0	; byte mais significativo do resultado da potenciação
+result_pot_B:	DB 0	; byte menos significativo do resultado da potenciação
+
+; registradores de multiplicacao (A*B)
+A:		DB 0	
+B:		DB 0
+cont_mult:	DB 0	; contador que conta 8 vezes para realizar o deslocamento dos bits da multiplicacao
+
+; constantes
+cte_8:		DB 8	
+cte_1:		DB 1
+cte_0:		DB 0
+
+ORG 200
+ZERA_VARIAVEIS:
+	LDA cte_0
+	STA msb
+	STA lsb
+	STA cont
+	STA d
+	STA resto_div
+	STA result_pot_A
+	STA result_pot_B
+	STA A
+	STA B
+	STA cont_mult
+	JMP INICIO
+
+ORG 0
+	JMP ZERA_VARIAVEIS	; zera as variáveis e começa o algoritmo
+INICIO:
+	LDA n			; copia a variável d para o contador
+	STA cont
+
+; ROTINAS PARA ENCONTRAR DIVISORES
+; Para realizar tal tarefa, utilizou-se a metodologia de subtrações sucessivas
+INICIO_DIV:
+	LDA n		; carrega n para o resto da divisão
+	STA resto_div
+	JMP DIVISORES	; e inicia tarefa de procurar divisores
+
+; loop de busca de divisores de n
+LOOP_DIV:
+	LDA n		; Carrega n
+	STA resto_div	; e inicializa com n o resto das divisões (variável que salva resultado de subtrações sucessivas)
+	LDA cont	; Decrementa contador de busca de divisores e o salva
+	SUB cte_1
+	STA cont
+	JZ FIM
+
+DIVISORES:
+	LDA resto_div	; Carrega o resto da subtrai o divisor em potencial 
+	SUB cont
+	STA resto_div
+	JZ ELEVA_D_X	; Caso o resultado das subtrações for zero, então o contador é um divisor de n.
+			; Portanto, deve-se elevar o divisor encontrado em x (d^x)
+	JNB DIVISORES	; Caso o resultado das subtrações sucessivas não gerar borrwow; isto é, caso
+			; a subtração der um número positivo maior que zero, chama esse método novamente
+			; para realizar outra subtração recursivamente.
+	JB LOOP_DIV	; Caso o resultado das subtrações sucessivas gerar borrow, sabe-se que esse não é
+			; um divisor de n. Portanto, volta ao loop de busca de divisores.
+
+; Eleva o divisor na potência x
+ELEVA_D_X:
+	LDA cont	; sabendo que o contador nessa posicao é um divisor
+	STA d		; carrega-o e o salva em d (divisor)
+	LDA cte_0
+	STA result_pot_A
+	LDA cte_1
+	STA result_pot_B
+	LDA x
+	JZ SOMA_POT_RESULT
+	SUB cte_1
+	JZ POT_1
+	JMP POT_2
+
+; No caso de x ser 1
+POT_1:
+	LDA d			; carrega o d
+	STA result_pot_B	; e salva no resultado parcial da potencia
+	JMP SOMA_POT_RESULT	; dps soma o resultado no somatório geral
+
+; No caso de x ser 2
+POT_2:
+	LDA cte_8
+	STA cont_mult
+	LDA cte_0
+	STA result_pot_B
+	LDA d
+	STA A
+	LDA d
+	STA B
+
+; MULTIPLICAÇÃO:
+; O algoritmo de multiplicacao foi montado utilizando a metodologia de deslocamento de bits
+; O processo a seguir se repete 8 vezes.
+LOOP_MULTIPLICACAO:			
+	LDA B			; Desloca B pra direita com a finalidade de descobrir como é composto B.
+	SHR	
+	STA B		
+	JNC DESLOCA_RESULT	; Verifica se dá carry, ou seja, se o bit deslocado de B é 1. 
+				; Caso não dê carry, desloca o resultado atual da multiplicação para a direita
+	LDA result_pot_A	; Caso sim, adiciona A no resultado atual da multiplicação
+	ADD A
+	STA result_pot_A	; E, depois de adicionar A, desloca o resultado atual da multiplicação para a direita
+
+; Desloca Result (nome dado ao conjunto do byte mais significativo e menos significativo do resultado da multiplicação)
+; para a direita
+DESLOCA_RESULT: 			
+	LDA result_pot_A	; Carrega resultado parcial da multiplicação em A
+	SHR			; Desloca para a direita e salva
+	STA result_pot_A	
+	LDA result_pot_B	; Carrega B
+	ROR			; Rotaciona para a direita e salva
+	STA result_pot_B
+
+VERIFICACAO_LOOP_MULTIPLICACAO:
+	LDA cont_mult		; aqui faz a verificacao do loop
+	SUB cte_1
+	STA cont_mult
+	JZ SOMA_POT_RESULT	; caso o loop já tenha chegado à 0, termina
+	JMP LOOP_MULTIPLICACAO	; caso não, refaz a operacao
+
+
+ORG 150	
+
+; Soma resultados parciais das potências no somatório geral (registradores de saída do programa)
+SOMA_POT_RESULT:
+	LDA result_pot_B	; soma B com o byte final menos significativo do resultado final
+	ADD lsb			
+	STA lsb			
+	JNC SOMA_A		; Caso a soma não gere carry, soma A.
+	LDA msb			; Caso gere carry, soma 1 no byte mais significativo do resultado final
+	ADD cte_1
+	STA msb
+	JMP SOMA_A		; E, por fim, soma A
+
+SOMA_A:				; soma A com o byte mais significativo
+	LDA result_pot_A
+	ADD msb
+	STA msb
+	JMP LOOP_DIV		; Depois de efetuar a soma dos resultados parciais com o final, volta para o loop
+
+FIM:	HLT			; termina xD
