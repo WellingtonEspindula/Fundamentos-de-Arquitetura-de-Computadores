@@ -166,7 +166,8 @@ SOMA_POT_RESULT:
 	STA msb
 	JMP SOMA_A		; E, por fim, soma A
 
-SOMA_A:				; soma A com o byte mais significativo
+; soma A com o byte mais significativo
+SOMA_A:			
 	LDA result_pot_A
 	ADD msb
 	STA msb
