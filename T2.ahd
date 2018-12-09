@@ -105,9 +105,9 @@ ELEVA_D_X:
 
 ; No caso de x ser 1
 POT_1:
-	LDA d			; carrega o d
+	LDA d			; Carrega o d
 	STA result_pot_B	; e salva no resultado parcial da potencia
-	JMP SOMA_POT_RESULT	; dps soma o resultado no somatório geral
+	JMP SOMA_POT_RESULT	; depois soma o resultado no somatório geral
 
 ; No caso de x ser 2
 POT_2:
