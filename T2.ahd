@@ -91,17 +91,17 @@ DIVISORES:
 
 ; Eleva o divisor na potência x
 ELEVA_D_X:
-	LDA cont	; sabendo que o contador nessa posicao é um divisor
-	STA d		; carrega-o e o salva em d (divisor)
-	LDA cte_0
+	LDA cont		; Sabendo que o contador nessa posicao é um divisor
+	STA d			; carrega-o e o salva em d (divisor)
+	LDA cte_0		; Reseta as variáveis de potência como 0 no byte mais significativo (A)
 	STA result_pot_A
-	LDA cte_1
+	LDA cte_1		; e 1 no menos significativo (B)
 	STA result_pot_B
-	LDA x
-	JZ SOMA_POT_RESULT
-	SUB cte_1
-	JZ POT_1
-	JMP POT_2
+	LDA x			; Carrega x
+	JZ SOMA_POT_RESULT	; Caso x for 0, soma o resultado da potencia com o resultado geral
+	SUB cte_1		
+	JZ POT_1		; Caso seja 1, pula para POT_1
+	JMP POT_2		; Caso seja 2, pula para POT_2
 
 ; No caso de x ser 1
 POT_1:
@@ -111,13 +111,13 @@ POT_1:
 
 ; No caso de x ser 2
 POT_2:
-	LDA cte_8
-	STA cont_mult
-	LDA cte_0
+	LDA cte_8		; Carrega 8 no contador de multiplicação
+	STA cont_mult		
+	LDA cte_0		; Define o resultado da potência em B como 0
 	STA result_pot_B
-	LDA d
+	LDA d			; Carrega d como A
 	STA A
-	LDA d
+	LDA d			; Carrega d como B (AxB = DxD = D²)
 	STA B
 
 ; MULTIPLICAÇÃO:
