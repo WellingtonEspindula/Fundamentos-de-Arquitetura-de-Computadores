@@ -58,7 +58,7 @@ ZERA_VARIAVEIS:
 ORG 0
 	JMP ZERA_VARIAVEIS	; Zera as variáveis e começa o algoritmo
 INICIO:
-	LDA n			; Copia a variável d para o contador
+	LDA n			; Copia a variável n para o contador
 	STA cont
 
 ; ROTINAS PARA ENCONTRAR DIVISORES
